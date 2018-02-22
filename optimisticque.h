@@ -9,8 +9,7 @@
 
 #include <boost/atomic.hpp>
 
-#include "../container/detail/_hazard_ptr.h"
-#include "../pool/objpool.h"
+#include "./detail/_hazard_ptr.h"
 
 namespace Fossilizid{
 namespace container{
@@ -149,19 +148,15 @@ public:
 
 private:
 	node * get_node(){
-		node * _node = pool::objpool<node>::allocator(1);
-		new (_node) node();
-		return _node;
+		return new node();
 	}
 
 	node * get_node(const T & data){
-		node * _node = pool::objpool<node>::allocator(1);
-		new (_node) node(data);
-		return _node;
+		return new node(data);
 	}
 
 	void put_node(node * _node){
-		pool::objpool<node>::deallocator(_node, 1);
+		delete _node;
 	}
 
 	list * get_list(){

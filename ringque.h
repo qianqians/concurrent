@@ -10,8 +10,6 @@
 #include <boost/atomic.hpp>
 #include <boost/thread.hpp>
 
-#include "../pool/objpool.h"
-
 namespace Fossilizid{
 namespace container{
 
@@ -111,8 +109,8 @@ public:
 			}
 
 			if (_push_slide.compare_exchange_strong(slide, newslide)){	
-				T * _null = 0, *_node = pool::objpool<T>::allocator(1);
-				new (_node)T(data);
+				T * _null = 0;
+				T * _node = new T(data);
 				while(!_que[slide].compare_exchange_weak(_null, _node)){
 					_null = 0;
 				}
@@ -141,7 +139,7 @@ public:
 			if (_pop_slide.compare_exchange_strong(slide, newslide)){
 				while((_tmp = _que[slidetail].exchange(0)) == 0);
 				data = *_tmp;
-				pool::objpool<T>::deallocator(_tmp, 1);
+				delete _tmp;
 				_size--;
 				return true;
 			}

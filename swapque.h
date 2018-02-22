@@ -10,8 +10,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/atomic.hpp>
 
-#include "../container/detail/_hazard_ptr.h"
-#include "../pool/objpool.h"
+#include "./detail/_hazard_ptr.h"
 
 namespace Fossilizid{
 namespace container{
@@ -171,14 +170,12 @@ private:
 		__que->_size = 0;
 
 		__que->_frond = __mirco_que_alloc.allocate(1);
-		_que_node * _node = pool::objpool<_que_node>::allocator(1);
-		new (_node) _que_node();
+		_que_node * _node = new _que_node();
 		__que->_frond->_begin.store(_node);
 		__que->_frond->_end.store(_node);
 
 		__que->_back = __mirco_que_alloc.allocate(1);
-		_node = pool::objpool<_que_node>::allocator(1);
-		new (_node)_que_node();
+		_node = new _que_node();
 		__que->_back->_begin.store(_node);
 		__que->_back->_end.store(_node);
 
@@ -212,13 +209,11 @@ private:
 	}
 
 	_que_node * get_node(const T & data){
-		_que_node * _node = pool::objpool<_que_node>::allocator(1);
-		new (_node)_que_node(data);
-		return _node;
+		return new _que_node(data);
 	}
 
 	void put_node(_que_node * _p){
-		pool::objpool<_que_node>::deallocator(_p, 1);
+		delete _p;
 	}
 
 private:

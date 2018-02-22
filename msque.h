@@ -11,8 +11,7 @@
 #include <boost/bind.hpp>
 #include <boost/atomic.hpp>
 
-#include "../container/detail/_hazard_ptr.h"
-#include "../pool/objpool.h"
+#include "./detail/_hazard_ptr.h"
 
 namespace Fossilizid {
 namespace container{
@@ -188,7 +187,8 @@ private:
 	}
 
 	_list_node * get_node(const T & data){
-		_list_node * _node = pool::objpool<_list_node>::allocator(1);
+		_list_node * _node = __node_alloc.allocate(1);
+		while (_node == 0) { _node = __node_alloc.allocate(1); }
 		new (&_node->data) T(data);
 		_node->_next = 0;
 
@@ -196,7 +196,8 @@ private:
 	}
 
 	void put_node(_list_node * _p){
-		pool::objpool<_list_node>::deallocator(_p, 1);
+		_p->~_list_node();
+		__node_alloc.deallocate(_p, 1);
 	}
 
 private:
