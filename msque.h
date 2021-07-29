@@ -8,13 +8,12 @@
 #ifndef _MSQUE_H
 #define _MSQUE_H
 
-#include <boost/bind.hpp>
-#include <boost/atomic.hpp>
+#include <functional>
+#include <atomic>
 
 #include "./detail/_hazard_ptr.h"
 
-namespace Fossilizid {
-namespace container{
+namespace lock_free {
 
 template <typename T, typename _Allocator = std::allocator<T> >
 class msque{
@@ -25,24 +24,24 @@ private:
 		~_list_node () {}
 
 		T data;
-		boost::atomic<_list_node *> _next;
+		std::atomic<_list_node *> _next;
 	};
 
 	struct _list{
-		boost::atomic<_list_node *> _begin;
-		boost::atomic<_list_node *> _end;
-		boost::atomic_uint32_t _size;
+		std::atomic<_list_node *> _begin;
+		std::atomic<_list_node *> _end;
+		std::atomic_uint32_t _size;
 	};
 	
-	typedef Fossilizid::container::detail::_hazard_ptr<_list_node> _hazard_ptr;
-	typedef Fossilizid::container::detail::_hazard_system<_list_node> _hazard_system;
-	typedef Fossilizid::container::detail::_hazard_ptr<_list> _hazard_list_ptr;
-	typedef Fossilizid::container::detail::_hazard_system<_list> _hazard_list_;
-	typedef typename _Allocator::template rebind<_list_node>::other _node_alloc;
-	typedef typename _Allocator::template rebind<_list>::other _list_alloc;
+	typedef lock_free::detail::_hazard_ptr<_list_node> _hazard_ptr;
+	typedef lock_free::detail::_hazard_system<_list_node> _hazard_system;
+	typedef lock_free::detail::_hazard_ptr<_list> _hazard_list_ptr;
+	typedef lock_free::detail::_hazard_system<_list> _hazard_list_;
+	using _node_alloc = typename std::allocator_traits<_Allocator>::template rebind_alloc<_list_node>;
+	using _list_alloc = typename std::allocator_traits<_Allocator>::template rebind_alloc<_list>;
 		
 public:
-	msque(void) : _hazard_sys(boost::bind(&msque::put_node, this, _1)), _hazard_list(boost::bind(&msque::put_list, this, _1)){
+	msque(void) : _hazard_sys(std::bind(&msque::put_node, this, std::placeholders::_1)), _hazard_list(std::bind(&msque::put_list, this, std::placeholders::_1)){
 		__list.store(get_list());
 	}
 
@@ -201,7 +200,7 @@ private:
 	}
 
 private:
-	boost::atomic<_list *> __list;
+	std::atomic<_list *> __list;
 	_list_alloc __list_alloc;
 	_node_alloc __node_alloc;
 
@@ -210,6 +209,5 @@ private:
 
 };
 
-} /* Hemsleya */
-} /* container */
+} /* lock_free */
 #endif //_MSQUE_H

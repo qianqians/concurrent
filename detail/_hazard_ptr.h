@@ -8,23 +8,21 @@
 #ifndef _HAZARD_PTR_H
 #define _HAZARD_PTR_H
 
-#include <boost/array.hpp>
-#include <boost/thread.hpp>
-#include <boost/function.hpp>
-#include <boost/foreach.hpp>
-#include <boost/atomic.hpp>
-
+#include <array>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <functional>
+#include <algorithm>
 
-namespace Fossilizid{
-namespace container{
+namespace lock_free{
 namespace detail{
 	
 // _hazard_ptr
 template <typename X>
 struct _hazard_ptr{
 	X * _hazard; //
-	boost::atomic_int32_t _active; // 0 使用中/1 未使用
+	std::atomic_int32_t _active; // 0 使用中/1 未使用
 };
 
 // hazard system 
@@ -32,28 +30,27 @@ template <typename T, typename _Allocator = std::allocator<T> >
 class _hazard_system{
 private:
 	//Recover flag
-	boost::atomic_flag recoverflag;
+	std::atomic_flag recoverflag;
 
 	// deallocate function
-	typedef boost::function<void(typename T * )> fn_dealloc;
+	typedef std::function<void(typename T * )> fn_dealloc;
 	// deallocate struct data
 	typedef typename T * _deallocate_data;
-	typedef typename _Allocator::template rebind<_deallocate_data>::other _Allocator_deallocate_data;
+	using _Allocator_deallocate_data = typename std::allocator_traits<_Allocator>::template rebind_alloc<_deallocate_data>;
 	// recover list
 	struct recover_list {
 		recover_list() : active(1) {re_vector.reserve(32);}
 
 		std::vector<_deallocate_data, _Allocator_deallocate_data> re_vector;
-		boost::atomic_int32_t active; // 0 使用中 / 1 未使用
+		std::atomic_int32_t active; // 0 使用中 / 1 未使用
 	};
 
 	// allocator 
-	typedef typename _Allocator::template rebind<recover_list>::other __alloc_recover_list;
-
+	using __alloc_recover_list = typename std::allocator_traits<_Allocator>::template rebind_alloc<recover_list>;
 	__alloc_recover_list _alloc_recover_list;
 
 	// 回收队列集合
-	boost::array<recover_list * , 8> re_list_set;
+	std::array<recover_list * , 8> re_list_set;
 
 	fn_dealloc _fn_dealloc;
 
@@ -61,18 +58,17 @@ private:
 	typedef _hazard_ptr<typename T> _hazard_ptr_;
 	typedef struct _list_node{
 		_hazard_ptr_ _hazard;
-		boost::atomic<_list_node *> next;
+		std::atomic<_list_node *> next;
 	} _list_head;
 
 	// allocator 
-	typedef typename _Allocator::template rebind<_list_node>::other __alloc_list_node;
-
+	using __alloc_list_node = typename std::allocator_traits<_Allocator>::template rebind_alloc<_list_node>;
 	__alloc_list_node _alloc_list_node;
 
 	// hazard ptr list
-	boost::atomic<_list_head *> _head;
+	std::atomic<_list_head *> _head;
 	// list lenght
-	boost::atomic_uint32_t llen;
+	std::atomic_uint32_t llen;
 
 public:
 	_hazard_system(fn_dealloc _D) : _fn_dealloc(_D){
@@ -86,9 +82,9 @@ public:
 	}
 
 	~_hazard_system(){
-		BOOST_FOREACH(recover_list * _re_list, re_list_set){
+		for(recover_list * _re_list : re_list_set){
 			if(!_re_list->re_vector.empty()){
-				BOOST_FOREACH(_deallocate_data var, _re_list->re_vector){
+				for(_deallocate_data var : _re_list->re_vector){
 					_fn_dealloc(var);
 				}
 				_re_list->re_vector.clear();
@@ -176,7 +172,7 @@ public:
 			std::sort(hvector.begin(), hvector.end(), std::less<void*>());
 		
 			// deallocator
-			std::vector<_deallocate_data>::iterator iter = _rvector_ptr->re_vector.begin();
+			auto iter = _rvector_ptr->re_vector.begin();
 			while(iter != _rvector_ptr->re_vector.end()){
 				if(!std::binary_search(hvector.begin(), hvector.end(), *iter)){
 					_fn_dealloc(*iter);
@@ -204,8 +200,7 @@ public:
 };
 
 } /* detail */
-} /* container */
-} /* Fossilizid */
+} /* lock_free */
 
 #endif // _HAZARD_PTR_H
 
