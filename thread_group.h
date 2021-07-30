@@ -44,11 +44,21 @@ public:
 		_l_th_group.unlock();
 	}
 
+	void remove_thread(std::shared_ptr<std::thread> th) {
+		_l_th_group.lock();
+		auto it = std::find(_th_group.begin(), _th_group.end(), th);
+		if (it != _th_group.end()) {
+			_th_group.erase(it);
+		}
+		_l_th_group.unlock();
+	}
+
 	void join_all() {
 		_l_th_group.lock();
 		for (auto th : _th_group) {
 			th->join();
 		}
+		_th_group.clear();
 		_l_th_group.unlock();
 	}
 
