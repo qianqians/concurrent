@@ -22,7 +22,7 @@ namespace detail{
 template <typename X>
 struct _hazard_ptr{
 	X * _hazard; //
-	std::atomic_int32_t _active; // 0 ʹ����/1 δʹ��
+	std::atomic_int32_t _active; // 0 unactive/1 active
 };
 
 // hazard system 
@@ -42,7 +42,7 @@ private:
 		recover_list() : active(1) {re_vector.reserve(32);}
 
 		std::vector<_deallocate_data, _Allocator_deallocate_data> re_vector;
-		std::atomic_int32_t active; // 0 ʹ���� / 1 δʹ��
+		std::atomic_int32_t active; // 0 unactive/1 active
 	};
 
 	// allocator 
