@@ -49,7 +49,7 @@ private:
 	using __alloc_recover_list = typename std::allocator_traits<_Allocator>::template rebind_alloc<recover_list>;
 	__alloc_recover_list _alloc_recover_list;
 
-	// ���ն��м���
+	// recover_list
 	std::array<recover_list * , 8> re_list_set;
 
 	fn_dealloc _fn_dealloc;
