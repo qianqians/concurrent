@@ -21,7 +21,7 @@ private:
 	struct _list_node{
 		_list_node () {_next = 0;}
 		_list_node (const T & val) : data(val) {_next = 0;}
-		~_list_node () {}
+		virtual ~_list_node () {}
 
 		T data;
 		std::atomic<_list_node *> _next;
@@ -45,7 +45,7 @@ public:
 		__list.store(get_list());
 	}
 
-	~msque(void){
+	virtual ~msque(void){
 		put_list(__list.load());
 	}
 
@@ -101,6 +101,7 @@ public:
 				_hp_list->_hazard->_size++;
 				break;
 			}
+			_mm_pause();
 		}
 
 		_hazard_sys.release(_hp);
@@ -139,6 +140,7 @@ public:
 				_hp_list->_hazard->_size--;
 				break;
 			}
+			_mm_pause();
 		}
 
 		_hazard_list.release(_hp_list);
@@ -151,7 +153,6 @@ public:
 private:
 	_list * get_list(){
 		_list * __list = __list_alloc.allocate(1);
-		while(__list == 0){__list = __list_alloc.allocate(1);}
 		new (__list) _list();
 
 		__list->_size = 0;
@@ -177,7 +178,6 @@ private:
 
 	_list_node * get_node(){
 		_list_node * _node = __node_alloc.allocate(1);
-		while(_node == 0){_node = __node_alloc.allocate(1);}
 		new (_node) _list_node();
 		
 		_node->_next = 0;
@@ -187,10 +187,8 @@ private:
 
 	_list_node * get_node(const T & data){
 		_list_node * _node = __node_alloc.allocate(1);
-		while (_node == 0) { _node = __node_alloc.allocate(1); }
-		new (&_node->data) T(data);
-		_node->_next = 0;
-
+		new (_node) _list_node(data);
+		
 		return _node;
 	}
 

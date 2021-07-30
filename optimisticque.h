@@ -19,7 +19,7 @@ private:
 	struct node{
 		node() : next(0), prev(0){}
 		node(const T & _data) : data(_data), next(0), prev(0){}
-		~node(){}
+		virtual ~node(){}
 
 		T data;
 		std::atomic<node *> next, prev;
@@ -39,7 +39,7 @@ public:
 		_list.store(get_list());
 	}
 
-	~optimisticque(){
+	virtual ~optimisticque(){
 		put_list(_list.load());
 	}
 
@@ -89,6 +89,7 @@ public:
 				_plist->_hazard ->size++;
 				break;
 			}
+			_mm_pause();
 		}
 
 		_hsys.release(_ptr_detail);
@@ -126,15 +127,16 @@ public:
 					nodenext->next.store(_ptr_detail->_hazard);
 					_ptr_detail->_hazard = nodenext;
 				}
+				continue;
 			}
-		
+
 			if (_plist->_hazard->head.compare_exchange_weak(_ptr_node[0]->_hazard, _ptr_node[1]->_hazard)){
 				data = _ptr_node[1]->_hazard->data;
 				_hsys.retire(_ptr_node[0]->_hazard);
 				_plist->_hazard->size--;
-				
 				break;
 			}
+			_mm_pause();
 		}
 
 		_hsys.release(_ptr_node[0]);
@@ -147,15 +149,20 @@ public:
 
 private:
 	node * get_node(){
-		return new node();
+		node * _node = _alloc_node.allocate(1);
+		new (_node) node();
+		return _node;
 	}
 
 	node * get_node(const T & data){
-		return new node(data);
+		node * _node = _alloc_node.allocate(1);
+		new (_node) node(data);
+		return _node;
 	}
 
 	void put_node(node * _node){
-		delete _node;
+		_node->~node();
+		_alloc_node.deallocate(_node, 1);
 	}
 
 	list * get_list(){

@@ -20,7 +20,7 @@ private:
 	struct _que_node{
 		_que_node () : _next(0) {}
 		_que_node (const T & val) : data(val), _next(0) {}
-		~_que_node () {}
+		virtual ~_que_node () {}
 
 		T data;
 		std::atomic<_que_node *> _next;
@@ -51,7 +51,7 @@ public:
 		__que.store(get_que());
 	}
 
-	~swapque(){
+	virtual ~swapque(){
 		put_que(__que.load());
 	}
 		
@@ -94,9 +94,9 @@ public:
 				_que_node * _old_end = _hazard_que->_hazard->_back->_end.exchange(_node);
 				_old_end->_next = _node;
 				_hazard_que->_hazard->_size++;
-
 				break;
 			}
+			_mm_pause();
 		}
 		_hazard_que_sys.release(_hazard_que);
 	}
@@ -148,6 +148,7 @@ public:
 						bRet = true;
 						goto end;
 					}
+					_mm_pause();
 				}
 			}
 		}
@@ -164,18 +165,17 @@ public:
 private:
 	_que * get_que(){
 		_que * __que = __que_alloc.allocate(1);
-		while(__que == 0){__que = __que_alloc.allocate(1);};
 		::new(__que) _que();
 
 		__que->_size = 0;
 
 		__que->_frond = __mirco_que_alloc.allocate(1);
-		_que_node * _node = new _que_node();
+		_que_node * _node = get_node();
 		__que->_frond->_begin.store(_node);
 		__que->_frond->_end.store(_node);
 
 		__que->_back = __mirco_que_alloc.allocate(1);
-		_node = new _que_node();
+		_node = get_node();
 		__que->_back->_begin.store(_node);
 		__que->_back->_end.store(_node);
 
@@ -208,8 +208,16 @@ private:
 		__que_alloc.deallocate(_p, 1);
 	}
 
+	_que_node* get_node() {
+		_que_node* _node = __node_alloc.allocate(1);
+		new (_node) _que_node();
+		return _node;
+	}
+
 	_que_node * get_node(const T & data){
-		return new _que_node(data);
+		_que_node * _node = __node_alloc.allocate(1);
+		new (_node) _que_node(data);
+		return _node;
 	}
 
 	void put_node(_que_node * _p){
@@ -218,6 +226,7 @@ private:
 
 private:
 	std::atomic<_que *> __que;
+	_node_alloc __node_alloc;
 	_que_alloc __que_alloc;
 	_mirco_que_alloc __mirco_que_alloc;
 

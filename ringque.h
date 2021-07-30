@@ -28,7 +28,7 @@ public:
 		_size.store(0);
 	}
 
-	~ringque(){
+	virtual ~ringque(){
 		put_que(_que, _que_max);
 	}
 		
@@ -117,6 +117,7 @@ public:
 				_size++;
 				break;
 			}
+			_mm_pause();
 		}
 	}
 
@@ -143,6 +144,7 @@ public:
 				_size--;
 				return true;
 			}
+			_mm_pause();
 		}
 
 		return false;

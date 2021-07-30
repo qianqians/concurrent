@@ -9,7 +9,10 @@
 
 int main(){
 	base_test<lock_free::ringque<test> > test;
-	test(10);
+	test(100);
+	
+	char n;
+	std::cin >> n;
 
 	return 1;
 }
