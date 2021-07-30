@@ -2,7 +2,7 @@
  * base_test.h
  *  Created on: 2013-8-17
  *	    Author: qianqians
- * base_test: lock-free que »ù×¼²âÊÔÓÃÀı
+ * base_test: lock-free que ï¿½ï¿½×¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 #ifndef _BASE_TEST_H
 #define _BASE_TEST_H
@@ -19,7 +19,7 @@ struct test{
 	int num;
 };
 
-template<class que = lock_free::msque<test> >
+template<class que = concurrent::msque<test> >
 class base_test{
 private:
 	que _que;

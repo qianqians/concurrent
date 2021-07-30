@@ -10,7 +10,7 @@
 #include <atomic>
 #include <shared_mutex>
 
-namespace lock_free{
+namespace concurrent{
 
 template<typename T, typename _Allocator = std::allocator<T>, unsigned detailsize = 1024 >
 class ringque{ 
@@ -206,6 +206,6 @@ private:
 
 };
 
-}//lock_free
+}//concurrent
 
 #endif //_RINGQUE_H

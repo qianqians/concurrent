@@ -11,7 +11,7 @@
 #include <atomic>
 #include <thread>
 
-namespace lock_free {
+namespace concurrent {
 
 class spinlock {
 private:
@@ -49,5 +49,5 @@ public:
 
 };
 
-} /* lock_free */
+} /* concurrent */
 #endif //_SPINLOCK_H

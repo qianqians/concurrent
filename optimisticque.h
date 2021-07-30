@@ -11,7 +11,7 @@
 
 #include "./detail/_hazard_ptr.h"
 
-namespace lock_free{
+namespace concurrent{
 
 template<class T, class _Allocator = std::allocator<T> >
 class optimisticque{
@@ -202,6 +202,6 @@ private:
 
 };
 
-}// lock_free
+}// concurrent
 
 #endif //_optimisticque_H

@@ -15,14 +15,14 @@
 #include <functional>
 #include <algorithm>
 
-namespace lock_free{
+namespace concurrent{
 namespace detail{
 	
 // _hazard_ptr
 template <typename X>
 struct _hazard_ptr{
 	X * _hazard; //
-	std::atomic_int32_t _active; // 0 使用中/1 未使用
+	std::atomic_int32_t _active; // 0 使锟斤拷锟斤拷/1 未使锟斤拷
 };
 
 // hazard system 
@@ -42,14 +42,14 @@ private:
 		recover_list() : active(1) {re_vector.reserve(32);}
 
 		std::vector<_deallocate_data, _Allocator_deallocate_data> re_vector;
-		std::atomic_int32_t active; // 0 使用中 / 1 未使用
+		std::atomic_int32_t active; // 0 使锟斤拷锟斤拷 / 1 未使锟斤拷
 	};
 
 	// allocator 
 	using __alloc_recover_list = typename std::allocator_traits<_Allocator>::template rebind_alloc<recover_list>;
 	__alloc_recover_list _alloc_recover_list;
 
-	// 回收队列集合
+	// 锟斤拷锟秸讹拷锟叫硷拷锟斤拷
 	std::array<recover_list * , 8> re_list_set;
 
 	fn_dealloc _fn_dealloc;
@@ -200,7 +200,7 @@ public:
 };
 
 } /* detail */
-} /* lock_free */
+} /* concurrent */
 
 #endif // _HAZARD_PTR_H
 

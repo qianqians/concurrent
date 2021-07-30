@@ -12,7 +12,7 @@
 
 #include "./detail/_hazard_ptr.h"
 
-namespace lock_free{
+namespace concurrent{
 
 template <typename T, typename _Allocator = std::allocator<T> >
 class swapque{
@@ -37,10 +37,10 @@ private:
 		std::shared_mutex _mu;
 	};
 
-	typedef lock_free::detail::_hazard_ptr<_que_node> _hazard_ptr;
-	typedef lock_free::detail::_hazard_system<_que_node> _hazard_system;
-	typedef lock_free::detail::_hazard_ptr<_que> _hazard_que_ptr;
-	typedef lock_free::detail::_hazard_system<_que> _hazard_que_system;
+	typedef concurrent::detail::_hazard_ptr<_que_node> _hazard_ptr;
+	typedef concurrent::detail::_hazard_system<_que_node> _hazard_system;
+	typedef concurrent::detail::_hazard_ptr<_que> _hazard_que_ptr;
+	typedef concurrent::detail::_hazard_system<_que> _hazard_que_system;
 
 	using _node_alloc = typename std::allocator_traits<_Allocator>::template rebind_alloc<_que_node>;
 	using _mirco_que_alloc = typename std::allocator_traits<_Allocator>::template rebind_alloc<_mirco_que>;
@@ -235,6 +235,6 @@ private:
 
 };	
 
-} //lock_free
+} //concurrent
 
 #endif //_SWAPQUE_H

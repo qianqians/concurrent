@@ -13,7 +13,7 @@
 
 #include "./detail/_hazard_ptr.h"
 
-namespace lock_free {
+namespace concurrent {
 
 template <typename T, typename _Allocator = std::allocator<T> >
 class msque{
@@ -33,10 +33,10 @@ private:
 		std::atomic_uint32_t _size;
 	};
 	
-	typedef lock_free::detail::_hazard_ptr<_list_node> _hazard_ptr;
-	typedef lock_free::detail::_hazard_system<_list_node> _hazard_system;
-	typedef lock_free::detail::_hazard_ptr<_list> _hazard_list_ptr;
-	typedef lock_free::detail::_hazard_system<_list> _hazard_list_;
+	typedef concurrent::detail::_hazard_ptr<_list_node> _hazard_ptr;
+	typedef concurrent::detail::_hazard_system<_list_node> _hazard_system;
+	typedef concurrent::detail::_hazard_ptr<_list> _hazard_list_ptr;
+	typedef concurrent::detail::_hazard_system<_list> _hazard_list_;
 	using _node_alloc = typename std::allocator_traits<_Allocator>::template rebind_alloc<_list_node>;
 	using _list_alloc = typename std::allocator_traits<_Allocator>::template rebind_alloc<_list>;
 		
@@ -207,5 +207,5 @@ private:
 
 };
 
-} /* lock_free */
+} /* concurrent */
 #endif //_MSQUE_H
