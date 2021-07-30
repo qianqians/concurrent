@@ -62,6 +62,10 @@ public:
 		_l_th_group.unlock();
 	}
 
+	size_t size() {
+		return _th_group.size();
+	}
+
 };
 
 } /* concurrent */
