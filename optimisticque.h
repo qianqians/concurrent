@@ -110,7 +110,6 @@ public:
 			_plist->_hazard = _list.load();
 
 			_ptr_node[0]->_hazard = _plist->_hazard->head.load();
-
 			if (_ptr_node[0]->_hazard == _plist->_hazard->detail.load()){
 				ret = false;
 				break;
@@ -127,7 +126,8 @@ public:
 					nodenext->next.store(_ptr_detail->_hazard);
 					_ptr_detail->_hazard = nodenext;
 				}
-				continue;
+				_hsys.release(_ptr_detail);
+				_ptr_node[1]->_hazard = _ptr_node[0]->_hazard->next.load();
 			}
 
 			if (_plist->_hazard->head.compare_exchange_weak(_ptr_node[0]->_hazard, _ptr_node[1]->_hazard)){
