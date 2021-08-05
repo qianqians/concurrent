@@ -29,9 +29,6 @@ struct _hazard_ptr{
 template <typename T, typename _Allocator = std::allocator<T> >
 class _hazard_system{
 private:
-	//Recover flag
-	std::atomic_flag recoverflag;
-
 	// deallocate function
 	typedef std::function<void(typename T * )> fn_dealloc;
 	// deallocate struct data
@@ -193,7 +190,6 @@ public:
 
 		// push into rvector
 		_rvector_ptr->re_vector.push_back(p);
-		
 		_rvector_ptr->active.store(1);
 	}
 
