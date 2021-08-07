@@ -23,7 +23,7 @@ int main(){
 			l.lock_unique();
 			flag++;
 			std::cout << std::this_thread::get_id() << " new flag:" << flag << std::endl;
-			l.unlock_upgrade();
+			l.unlock_unique();
 		}));
 	}
 
