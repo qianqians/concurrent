@@ -140,6 +140,9 @@ public:
             if (lock_state) {
                 break;
             }
+            else {
+                std::this_thread::yield();
+            }
         }
     }
     void unlock_upgrade_and_lock_shared(){
