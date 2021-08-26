@@ -76,11 +76,11 @@ public:
 		}
 
 		auto th_id = std::this_thread::get_id();
-		if (th_id != _flag.load()) {
+		if (_flag.load() != th_id) {
 			throw NotSpinLockOwnerThreadException();
 		}
 
-		_flag.store(std::thread::id());
+		_flag.store(detail);
 	}
 
 };
