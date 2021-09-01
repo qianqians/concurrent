@@ -44,11 +44,6 @@ public:
                 break;
             }
             _mm_pause();
-
-            if (try_lock_shared()) {
-                break;
-            }
-            std::this_thread::yield();
         }
     }
     bool try_lock_shared() {
@@ -89,11 +84,6 @@ public:
                 break;
             }
             _mm_pause();
-
-            if (try_lock_unique()) {
-                break;
-            }
-            std::this_thread::yield();
         }
     }
     bool try_lock_unique() {
@@ -124,72 +114,6 @@ public:
             throw NotUniqueLockOwnerException();
         }
         _unique_flag = _detail;
-
-        _lock.unlock();
-    }
-
-    void lock_upgrade() {
-        while (true) {
-            if (try_lock_upgrade()) {
-                break;
-            }
-            _mm_pause();
-
-            if (try_lock_upgrade()) {
-                break;
-            }
-            std::this_thread::yield();
-        }
-    }
-    bool try_lock_upgrade() {
-        _lock.lock();
-        bool lock_state = false;
-        do {
-            if (_unique_flag != _detail) {
-                break;
-            }
-
-            auto th_id = std::this_thread::get_id();
-            auto shared_flag_it = std::find(_shared_flag.begin(), _shared_flag.end(), th_id);
-            if (_shared_flag.empty() || (_shared_flag.size() == 1 && shared_flag_it != _shared_flag.end())) {
-                _unique_flag = th_id;
-                lock_state = true;
-            }
-
-        } while (false);
-        _lock.unlock();
-
-        return lock_state;
-    }
-    void unlock_upgrade_and_lock_shared(){
-        _lock.lock();
-
-        auto th_id = std::this_thread::get_id();
-        if (_unique_flag != th_id) {
-            throw NotUniqueLockOwnerException();
-        }
-        _unique_flag = _detail;
-
-        auto shared_flag_it = std::find(_shared_flag.begin(), _shared_flag.end(), th_id);
-        if (shared_flag_it == _shared_flag.end()) {
-            _shared_flag.emplace_back(th_id);
-        }
-
-        _lock.unlock();
-    }
-    void unlock_upgrade() {
-        _lock.lock();
-
-        auto th_id = std::this_thread::get_id();
-        if (_unique_flag != th_id) {
-            throw NotUniqueLockOwnerException();
-        }
-        _unique_flag = _detail;
-
-        auto shared_flag_it = std::find(_shared_flag.begin(), _shared_flag.end(), th_id);
-        if (shared_flag_it != _shared_flag.end()) {
-            _shared_flag.erase(shared_flag_it);
-        }
 
         _lock.unlock();
     }

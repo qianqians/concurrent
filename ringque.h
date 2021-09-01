@@ -91,7 +91,6 @@ public:
 			newslide = slide+1; 
 			while (newslide == _pop_slide.load()){
 				lock.unlock();
-
 				{
 					std::unique_lock<std::shared_mutex> uniquelock(_mu, std::try_to_lock);
 					if (uniquelock.owns_lock()){
@@ -100,7 +99,6 @@ public:
 						}
 					}
 				}
-
 				lock.lock();
 			}
 
