@@ -11,7 +11,7 @@
 #include <map>
 #include <functional>
 
-namespace abelkhan {
+namespace concurrent {
 
 template<class R>
 struct signals_base;
