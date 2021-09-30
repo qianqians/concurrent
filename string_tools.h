@@ -23,7 +23,7 @@ std::string format(const char* pszFmt, ...)
         int nLength = _vscprintf(pszFmt, args);
         nLength += 1;
         std::vector<char> vectorChars(nLength);
-        _vsnprintf(vectorChars.data(), nLength, pszFmt, args);
+        vsnprintf(vectorChars.data(), nLength, pszFmt, args);
         str.assign(vectorChars.data());
     }
     va_end(args);
