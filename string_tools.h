@@ -14,7 +14,7 @@
 
 namespace concurrent {
 
-std::string format(const char* pszFmt, ...)
+inline std::string format(const char* pszFmt, ...)
 {
     std::string str;
     va_list args;
@@ -30,7 +30,7 @@ std::string format(const char* pszFmt, ...)
     return str;
 }
 
-std::vector<std::string> split(std::string in, std::string token)
+inline std::vector<std::string> split(std::string in, std::string token)
 {
 	std::vector<std::string> vstr;
 	do {
