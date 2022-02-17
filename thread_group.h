@@ -12,14 +12,13 @@
 #include <vector>
 #include <thread>
 #include <functional>
-
-#include <spinlock.h>
+#include <mutex>
 
 namespace concurrent {
 
 class thread_group {
 private:
-	spinlock _l_th_group;
+	std::mutex _l_th_mu;
 	std::vector<std::shared_ptr<std::thread> > _th_group;
 
 public:
@@ -31,35 +30,31 @@ public:
 	std::shared_ptr<std::thread> create_thread(std::function<void()> fn) {
 		auto th = std::make_shared<std::thread>(fn);
 
-		_l_th_group.lock();
+		std::lock_guard<std::mutex> l(_l_th_mu);
 		_th_group.emplace_back(th);
-		_l_th_group.unlock();
 
 		return th;
 	}
 
 	void add_thread(std::shared_ptr<std::thread> th) {
-		_l_th_group.lock();
+		std::lock_guard<std::mutex> l(_l_th_mu);
 		_th_group.emplace_back(th);
-		_l_th_group.unlock();
 	}
 
 	void remove_thread(std::shared_ptr<std::thread> th) {
-		_l_th_group.lock();
+		std::lock_guard<std::mutex> l(_l_th_mu);
 		auto it = std::find(_th_group.begin(), _th_group.end(), th);
 		if (it != _th_group.end()) {
 			_th_group.erase(it);
 		}
-		_l_th_group.unlock();
 	}
 
 	void join_all() {
-		_l_th_group.lock();
+		std::lock_guard<std::mutex> l(_l_th_mu);
 		for (auto th : _th_group) {
 			th->join();
 		}
 		_th_group.clear();
-		_l_th_group.unlock();
 	}
 
 	size_t size() {

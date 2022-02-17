@@ -11,14 +11,13 @@
 #include <thread_group.h>
 
 int main(){
-	concurrent::spinlock l;
+	std::mutex _l_th_mu;
 	concurrent::thread_group th_group;
 
 	for (auto i = 0; i < 100; i++) {
-		th_group.create_thread([&l]() {
-			l.lock();
+		th_group.create_thread([&_l_th_mu]() {
+			std::lock_guard<std::mutex> l(_l_th_mu);
 			std::cout << std::this_thread::get_id() << std::endl;
-			l.unlock();
 		});
 	}
 
