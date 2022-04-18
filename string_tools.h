@@ -14,22 +14,6 @@
 
 namespace concurrent {
 
-inline std::string format(const char* pszFmt, ...)
-{
-    std::string str;
-    va_list args;
-    va_start(args, pszFmt);
-    {
-        int nLength = _vscprintf(pszFmt, args);
-        nLength += 1;
-        std::vector<char> vectorChars(nLength);
-        vsnprintf(vectorChars.data(), nLength, pszFmt, args);
-        str.assign(vectorChars.data());
-    }
-    va_end(args);
-    return str;
-}
-
 inline std::vector<std::string> split(std::string in, std::string token)
 {
 	std::vector<std::string> vstr;
