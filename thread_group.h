@@ -19,7 +19,7 @@ namespace concurrent {
 class thread_group {
 private:
 	std::mutex _l_th_mu;
-	std::vector<std::shared_ptr<std::thread> > _th_group;
+	std::vector<std::shared_ptr<std::jthread> > _th_group;
 
 public:
 	thread_group() {}
@@ -27,26 +27,13 @@ public:
 		_th_group.clear();
 	}
 
-	std::shared_ptr<std::thread> create_thread(std::function<void()> fn) {
-		auto th = std::make_shared<std::thread>(fn);
+	std::shared_ptr<std::jthread> create_thread(std::function<void()> fn) {
+		auto th = std::make_shared<std::jthread>(fn);
 
 		std::lock_guard<std::mutex> l(_l_th_mu);
 		_th_group.emplace_back(th);
 
 		return th;
-	}
-
-	void add_thread(std::shared_ptr<std::thread> th) {
-		std::lock_guard<std::mutex> l(_l_th_mu);
-		_th_group.emplace_back(th);
-	}
-
-	void remove_thread(std::shared_ptr<std::thread> th) {
-		std::lock_guard<std::mutex> l(_l_th_mu);
-		auto it = std::find(_th_group.begin(), _th_group.end(), th);
-		if (it != _th_group.end()) {
-			_th_group.erase(it);
-		}
 	}
 
 	void join_all() {
