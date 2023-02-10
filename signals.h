@@ -24,6 +24,7 @@ public:
 
 	std::uint32_t connect(std::function<void(Args...)> slot)
 	{
+		std::lock_guard<std::mutex> l(slots_mutex_);
 		auto tmp_id = ++current_id_;
 		slots_.insert(std::make_pair(tmp_id, slot));
 		return tmp_id;
@@ -67,6 +68,7 @@ public:
 
 	std::uint32_t connect(std::function<Rt(Args...)> slot)
 	{
+		std::lock_guard<std::mutex> l(slots_mutex_);
 		auto tmp_id = ++current_id_;
 		slots_.insert(std::make_pair(tmp_id, slot));
 		return tmp_id;
