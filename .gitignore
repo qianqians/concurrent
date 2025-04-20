@@ -31,3 +31,4 @@
 *.out
 *.app
 /vc_build
+/.build
