@@ -96,8 +96,18 @@ private:
 	};
 
 	struct read_only {
-		std::shared_ptr<std::map<K, std::shared_ptr<entry<V>>>> m = std::make_shared<std::map<K, std::shared_ptr<entry<V>>>>();
-		bool amended = false;
+		std::shared_ptr<std::map<K, std::shared_ptr<entry<V>>>> m;
+		bool amended;
+
+		read_only() {
+			m = std::make_shared<std::map<K, std::shared_ptr<entry<V>>>>();
+			amended = false;
+		}
+
+		read_only(std::shared_ptr<std::map<K, std::shared_ptr<entry<V>>>> dirty) {
+			m = dirty;
+			amended = false;
+		}
 	};
 
 	typedef concurrent::detail::_hazard_ptr<read_only> _hazard_ptr;
@@ -293,8 +303,7 @@ private:
 		if (misses < _dirty->size()) {
 			return;
 		}
-		auto new_r = new read_only();
-		new_r->m = _dirty;
+		auto new_r = new read_only(_dirty);
 
 		_hazard_ptr* _hptr;
 		_hazard_sys.acquire(&_hptr, 1);
