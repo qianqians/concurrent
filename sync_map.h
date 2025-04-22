@@ -1,5 +1,6 @@
 /*
  * sync_map.h
+ * fork from go sync.map
  *		 Created on: 2025-4-20
  *			 Author: qianqians
  * sync_map:
