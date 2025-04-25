@@ -179,43 +179,45 @@ public:
 		_hazard_ptr* _hptr;
 		_hazard_sys.acquire(&_hptr, 1);
 
-		_hptr->_hazard = _read.load();
-		auto eit = _hptr->_hazard->m->find(key);
-		bool find = eit != _hptr->_hazard->m->end();
-		if (find) {
-			eit->second->trySwap(value);
-		}
-
-		std::unique_lock<std::mutex> l(_mu);
-		_hptr->_hazard = _read.load();
-		eit = _hptr->_hazard->m->find(key);
-		find = eit != _hptr->_hazard->m->end();
-		if (find) {
-			if (eit->second->unexpungeLocked()) {
-				_dirty->insert(std::make_pair(key, eit->second));
+		do {
+			_hptr->_hazard = _read.load();
+			auto eit = _hptr->_hazard->m->find(key);
+			bool find = eit != _hptr->_hazard->m->end();
+			if (find) {
+				eit->second->trySwap(value);
+				break;
 			}
-			eit->second->swapLocked(value);
-		}
-		else {
-			find = false;
+
+			std::unique_lock<std::mutex> l(_mu);
+			_hptr->_hazard = _read.load();
+			eit = _hptr->_hazard->m->find(key);
+			find = eit != _hptr->_hazard->m->end();
+			if (find) {
+				if (eit->second->unexpungeLocked()) {
+					_dirty->insert(std::make_pair(key, eit->second));
+				}
+				eit->second->swapLocked(value);
+				break;
+			}
+			
 			if (_dirty) {
 				auto deit = _dirty->find(key);
 				find = deit != _dirty->end();
 				if (find) {
 					deit->second->swapLocked(value);
+					break;
 				}
 			}
-			if (!find) {
-				if (!_hptr->_hazard->amended) {
-					dirtyLocked();
-					_hptr->_hazard->amended = true;
-				}
+			
+			if (!_hptr->_hazard->amended) {
+				dirtyLocked();
+				_hptr->_hazard->amended = true;
+			}
+			auto e = std::make_shared<entry<V>>();
+			e->p = new V(value);
+			_dirty->insert(std::make_pair(key, e));
 
-				auto e = std::make_shared<entry<V>>();
-				e->p = new V(value);
-				_dirty->insert(std::make_pair(key, e));
-			}
-		}
+		} while (false);
 
 		_hazard_sys.release(_hptr);
 	}
