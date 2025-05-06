@@ -259,8 +259,7 @@ public:
 
 			_hptr->_hazard = _read.load();
 			if (_hptr->_hazard->amended) {
-				auto new_r = new read_only();
-				new_r->m = _dirty;
+				auto new_r = new read_only(_dirty);
 
 				_read.store(new_r);
 				_hazard_sys.retire(_hptr->_hazard);
