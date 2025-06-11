@@ -24,14 +24,11 @@ class sync_map {
 private:
 	template <typename V>
 	struct entry {
-		static inline const V* const expunged = new V();
+		static inline std::shared_ptr<V> expunged = std::make_shared<V>();
 
-		std::atomic<V*> p;
+		std::atomic<std::shared_ptr<V>> p;
 
 		virtual ~entry() {
-			if (p.load()) {
-				delete p.load();
-			}
 		}
 
 		bool load(V &value) {
@@ -44,26 +41,23 @@ private:
 		}
 
 		bool unexpungeLocked() {
-			auto _p = (V*)entry::expunged;
+			auto _p = entry::expunged;
 			return p.compare_exchange_weak(_p, nullptr);
 		}
 
 		void swapLocked(V value) {
-			auto vp = new V(value);
+			auto vp = std::make_shared<V>(value);
 			auto old = p.exchange(vp);
-			delete old;
 		}
 
 		bool trySwap(V value) {
-			auto vp = new V(value);
+			auto vp = std::make_shared<V>(value);
 			while(true) {
 				auto _p = p.load();
 				if (_p == entry::expunged) {
-					delete vp;
 					return false;
 				}
 				if (p.compare_exchange_weak(_p, vp)){
-					delete _p;
 					return true;
 				}
 			}
@@ -76,7 +70,6 @@ private:
 					return false;
 				}
 				if (p.compare_exchange_strong(_p, nullptr)) {
-					delete _p;
 					return true;
 				}
 			}
@@ -85,8 +78,8 @@ private:
 		bool tryExpungeLocked() {
 			auto _p = p.load();
 			while (_p == nullptr) {
-				auto _pnull = (V*)nullptr;
-				auto _pexpunged = (V*)entry::expunged;
+				std::shared_ptr<V> _pnull = nullptr;
+				auto _pexpunged = entry::expunged;
 				if (p.compare_exchange_strong(_pnull, _pexpunged)) {
 					return true;
 				}
@@ -123,18 +116,6 @@ public:
 
 	virtual ~sync_map() {
 		read_only* _p = _read.load();
-
-		if (_dirty) {
-			for (auto [k, e] : *(_dirty)) {
-				delete e->p.load();
-			}
-		}
-		else {
-			for (auto [k, e] : *(_p->m)) {
-				delete e->p.load();
-			}
-		}
-
 		if (_p) {
 			put_read_only(_p);
 		}
@@ -159,7 +140,8 @@ public:
 				auto deit = _dirty->find(key);
 				find = deit != _dirty->end();
 				if (find) {
-					data = *(deit->second->p);
+					auto _p = deit->second->p.load();
+					data = *(_p);
 					missLocked();
 					return find;
 				}
@@ -167,7 +149,8 @@ public:
 		}
 
 		if (find) {
-			data = *(eit->second->p);
+			auto _p = eit->second->p.load();
+			data = *(_p);
 		}
 
 		_hazard_sys.release(_hptr);
@@ -215,7 +198,7 @@ public:
 					}
 
 					auto e = std::make_shared<entry<V>>();
-					e->p = new V(value);
+					e->p = std::make_shared<V>(value);
 					_dirty->insert(std::make_pair(key, e));
 				}
 			}
